@@ -12,7 +12,8 @@ mod request;
 mod response;
 
 pub fn start_server() -> anyhow::Result<()> {
-    let listener = TcpListener::bind(format!("{}:{}", DEFAULT_IP, DEFAULT_PORT)).unwrap();
+    let listener = TcpListener::bind(format!("{}:{}", DEFAULT_IP, DEFAULT_PORT))?;
+    println!("-> Server started on {}:{}", DEFAULT_IP, DEFAULT_PORT);
 
     for stream in listener.incoming() {
         let mut stream = stream?;
@@ -21,14 +22,14 @@ pub fn start_server() -> anyhow::Result<()> {
         let mut buffer = [0; 1024];
         let bytes_read = stream.read(&mut buffer)?;
         let request = request::HttpRequest::try_from(&buffer[..bytes_read])?;
-        // println!("--> Received {:#?}", request);
+        println!("--> Received request:\n{}", request.to_string());
 
         // Send the response
         let response = match request.path.as_str() {
             "/" => HttpResponse::new(StatusCode::Ok),
             _ => HttpResponse::new(StatusCode::NotFound),
         };
-        // println!("--> Response {:#?}", response);
+        println!("--> Response {}", response.to_string());
         let response: Vec<u8> = response.into();
         stream.write_all(&response)?;
         stream.flush()?;

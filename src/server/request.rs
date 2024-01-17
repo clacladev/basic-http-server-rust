@@ -41,6 +41,7 @@ pub struct HttpRequest {
     pub path: String,
     pub http_version: String,
     pub headers: Vec<Header>,
+    raw_string: String,
 }
 
 impl TryFrom<&[u8]> for HttpRequest {
@@ -86,6 +87,13 @@ impl TryFrom<&str> for HttpRequest {
             path,
             http_version,
             headers,
+            raw_string: value.to_string(),
         })
+    }
+}
+
+impl ToString for HttpRequest {
+    fn to_string(&self) -> String {
+        self.raw_string.clone()
     }
 }

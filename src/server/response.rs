@@ -24,9 +24,15 @@ impl HttpResponse {
     }
 }
 
+impl ToString for HttpResponse {
+    fn to_string(&self) -> String {
+        let status_message: &str = self.status_code.clone().into();
+        format!("HTTP/1.1 {}\r\n", status_message)
+    }
+}
+
 impl Into<Vec<u8>> for HttpResponse {
     fn into(self) -> Vec<u8> {
-        let status_string: &str = self.status_code.into();
-        format!("HTTP/1.1 {}\r\n", status_string).into_bytes()
+        self.to_string().into_bytes()
     }
 }

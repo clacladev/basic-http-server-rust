@@ -29,7 +29,7 @@ pub fn start_server() -> anyhow::Result<()> {
             "/" => HttpResponse::new(StatusCode::Ok),
             _ => HttpResponse::new(StatusCode::NotFound),
         };
-        println!("--> Response {}", response.to_string());
+        println!("--> Sent response:\n{}", response.to_string());
         let response: Vec<u8> = response.into();
         stream.write_all(&response)?;
         stream.flush()?;

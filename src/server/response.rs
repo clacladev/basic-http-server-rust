@@ -27,7 +27,7 @@ impl HttpResponse {
 impl ToString for HttpResponse {
     fn to_string(&self) -> String {
         let status_message: &str = self.status_code.clone().into();
-        format!("HTTP/1.1 {}\r\n", status_message)
+        format!("HTTP/1.1 {}\r\n\r\n", status_message)
     }
 }
 

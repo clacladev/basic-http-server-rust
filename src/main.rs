@@ -1,19 +1,10 @@
-use std::net::TcpListener;
+use server::start_server;
 
-const DEFAULT_IP: &str = "127.0.0.1";
-const DEFAULT_PORT: u32 = 4221;
+mod server;
 
 fn main() {
-    let listener = TcpListener::bind(format!("{}:{}", DEFAULT_IP, DEFAULT_PORT)).unwrap();
-
-    for stream in listener.incoming() {
-        match stream {
-            Ok(_stream) => {
-                println!("accepted new connection");
-            }
-            Err(e) => {
-                println!("error: {}", e);
-            }
-        }
+    match start_server() {
+        Ok(_) => println!("-> Server stopped"),
+        Err(e) => println!("-> Error: {}", e),
     }
 }

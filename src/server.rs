@@ -3,13 +3,13 @@ use std::{
     net::TcpListener,
 };
 
-use crate::server::response::{HttpResponse, StatusCode};
+use crate::routes::handle_request;
 
 const DEFAULT_IP: &str = "127.0.0.1";
 const DEFAULT_PORT: u32 = 4221;
 
-mod request;
-mod response;
+pub mod request;
+pub mod response;
 
 pub fn start_server() -> anyhow::Result<()> {
     let listener = TcpListener::bind(format!("{}:{}", DEFAULT_IP, DEFAULT_PORT))?;
@@ -25,13 +25,9 @@ pub fn start_server() -> anyhow::Result<()> {
         println!("--> Received request:\n{}", request.to_string());
 
         // Send the response
-        let response = match request.path.as_str() {
-            "/" => HttpResponse::new(StatusCode::Ok),
-            _ => HttpResponse::new(StatusCode::NotFound),
-        };
+        let response = handle_request(&request)?;
         println!("--> Sent response:\n{}", response.to_string());
-        let response: Vec<u8> = response.into();
-        stream.write_all(&response)?;
+        stream.write_all(response.to_string().as_bytes())?;
         stream.flush()?;
     }
 

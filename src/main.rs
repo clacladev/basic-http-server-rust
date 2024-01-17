@@ -1,5 +1,6 @@
 use server::start_server;
 
+mod routes;
 mod server;
 
 fn main() {

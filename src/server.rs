@@ -21,7 +21,7 @@ pub async fn start_server(options: Vec<CliOption>) -> anyhow::Result<()> {
 
     loop {
         let (stream, _) = listener.accept().await?;
-        let options = options.clone();
+        let options = Arc::clone(&options);
         tokio::spawn(async move { handle_stream(stream, options).await });
     }
 }
@@ -35,8 +35,12 @@ async fn handle_stream(mut stream: TcpStream, options: Arc<Vec<CliOption>>) -> a
 
     // Send the response
     let response = handle_request(&request, options)?;
-    println!("--> Sent response:\n{}", response.to_string());
-    stream.write_all(response.to_string().as_bytes()).await?;
+    let response_bytes = response.to_bytes();
+    println!(
+        "--> Sent response:\n{}",
+        String::from_utf8_lossy(&response_bytes)
+    );
+    stream.write_all(&response_bytes).await?;
 
     Ok(())
 }

@@ -7,7 +7,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug ./your_server.sh",
+      "name": "Debug ./your_server.sh --directory ~/Downloads",
       "cargo": {
         "args": [
           "build",
@@ -19,7 +19,7 @@
           "kind": "bin"
         }
       },
-      "args": [],
+      "args": ["--directory", "~/Downloads"],
       "cwd": "${workspaceFolder}"
     }
   ]

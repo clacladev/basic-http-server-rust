@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::{MAIN_SEPARATOR, MAIN_SEPARATOR_STR};
 use std::sync::Arc;
 
 use crate::cli::CliOption;
@@ -37,8 +39,8 @@ fn handle_route_echo(
     request: &HttpRequest,
     _options: Arc<Vec<CliOption>>,
 ) -> anyhow::Result<HttpResponse> {
-    let path_parts: Vec<&str> = request.path.split("/").collect();
-    let body = path_parts[2..].join("/");
+    let path_parts: Vec<&str> = request.path.split(MAIN_SEPARATOR).collect();
+    let body = path_parts[2..].join(MAIN_SEPARATOR_STR);
     let response = HttpResponse::new(StatusCode::Ok, Body::Text(body));
     Ok(response)
 }
@@ -63,14 +65,38 @@ fn handle_route_user_agent(
 
 fn handle_route_files(
     request: &HttpRequest,
-    _options: Arc<Vec<CliOption>>,
+    options: Arc<Vec<CliOption>>,
 ) -> anyhow::Result<HttpResponse> {
-    let path_parts: Vec<&str> = request.path.split("/").collect();
+    // Look for the directory option
+    let directory_path = options.iter().find_map(|option| {
+        let CliOption::Directory(directory_path) = option;
+        Some(directory_path)
+    });
+    let Some(directory_path) = directory_path else {
+        return Ok(HttpResponse::not_found());
+    };
+
+    // Get the filename from the request path
+    let path_parts: Vec<&str> = request.path.split(MAIN_SEPARATOR).collect();
     if path_parts.len() < 3 {
         return Ok(HttpResponse::not_found());
     }
 
-    let filename = path_parts[2..].join("/");
-    let response = HttpResponse::new(StatusCode::Ok, Body::Text(filename));
-    Ok(response)
+    // Create the file path
+    let mut file_path = directory_path.clone();
+    if !file_path.ends_with(MAIN_SEPARATOR) {
+        file_path.push(MAIN_SEPARATOR);
+    }
+    let filename = path_parts[2..].join(MAIN_SEPARATOR_STR);
+    file_path.push_str(&filename);
+
+    // Read the file
+    let Ok(file_content) = fs::read(file_path) else {
+        return Ok(HttpResponse::not_found());
+    };
+
+    Ok(HttpResponse::new(
+        StatusCode::Ok,
+        Body::BinaryData(file_content),
+    ))
 }

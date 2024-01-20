@@ -3,22 +3,30 @@ use std::path::{MAIN_SEPARATOR, MAIN_SEPARATOR_STR};
 use std::sync::Arc;
 
 use crate::cli::CliOption;
-use crate::server::request::HttpRequest;
+use crate::server::request::{
+    HttpRequest,
+    Method::{GET, POST},
+};
 use crate::server::response::{Body, HttpResponse, StatusCode};
 
 pub fn handle_request(
     request: &HttpRequest,
     options: Arc<Vec<CliOption>>,
 ) -> anyhow::Result<HttpResponse> {
-    match request.path.as_str() {
-        "/" => handle_route_root(request, options),
-        s if s == "/echo" || s.starts_with("/echo/") => handle_route_echo(request, options),
-        s if s == "/user-agent" || s.starts_with("/user-agent/") => {
-            handle_route_user_agent(request, options)
-        }
-        s if s == "/files" || s.starts_with("/files/") => handle_route_files(request, options),
+    match (&request.method, request.path.as_str()) {
+        (GET, "/") => get_root(request, options),
+        (GET, path) if is_matching(path, "/echo") => get_echo(request, options),
+        (GET, path) if is_matching(path, "/user-agent") => get_user_agent(request, options),
+        (GET, path) if is_matching(path, "/files") => get_files(request, options),
+        (POST, path) if is_matching(path, "/files") => post_files(request, options),
         _ => handle_route_unknown(request, options),
     }
+}
+
+fn is_matching(path: &str, route: &str) -> bool {
+    path == route
+        || path.starts_with(format!("{}/", route).as_str())
+        || path.starts_with(format!("{}?", route).as_str())
 }
 
 fn handle_route_unknown(
@@ -28,24 +36,18 @@ fn handle_route_unknown(
     Ok(HttpResponse::not_found())
 }
 
-fn handle_route_root(
-    _request: &HttpRequest,
-    _options: Arc<Vec<CliOption>>,
-) -> anyhow::Result<HttpResponse> {
+fn get_root(_request: &HttpRequest, _options: Arc<Vec<CliOption>>) -> anyhow::Result<HttpResponse> {
     Ok(HttpResponse::ok())
 }
 
-fn handle_route_echo(
-    request: &HttpRequest,
-    _options: Arc<Vec<CliOption>>,
-) -> anyhow::Result<HttpResponse> {
+fn get_echo(request: &HttpRequest, _options: Arc<Vec<CliOption>>) -> anyhow::Result<HttpResponse> {
     let path_parts: Vec<&str> = request.path.split(MAIN_SEPARATOR).collect();
     let body = path_parts[2..].join(MAIN_SEPARATOR_STR);
     let response = HttpResponse::new(StatusCode::Ok, Body::Text(body));
     Ok(response)
 }
 
-fn handle_route_user_agent(
+fn get_user_agent(
     request: &HttpRequest,
     _options: Arc<Vec<CliOption>>,
 ) -> anyhow::Result<HttpResponse> {
@@ -63,10 +65,7 @@ fn handle_route_user_agent(
     Ok(response)
 }
 
-fn handle_route_files(
-    request: &HttpRequest,
-    options: Arc<Vec<CliOption>>,
-) -> anyhow::Result<HttpResponse> {
+fn get_files(request: &HttpRequest, options: Arc<Vec<CliOption>>) -> anyhow::Result<HttpResponse> {
     // Look for the directory option
     let directory_path = options.iter().find_map(|option| {
         let CliOption::Directory(directory_path) = option;
@@ -99,4 +98,11 @@ fn handle_route_files(
         StatusCode::Ok,
         Body::BinaryData(file_content),
     ))
+}
+
+fn post_files(
+    _request: &HttpRequest,
+    _options: Arc<Vec<CliOption>>,
+) -> anyhow::Result<HttpResponse> {
+    Ok(HttpResponse::ok())
 }

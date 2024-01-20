@@ -30,7 +30,9 @@ async fn handle_stream(mut stream: TcpStream, options: Arc<Vec<CliOption>>) -> a
     // Read the request
     let mut buffer = [0; 1024];
     let bytes_read = stream.read(&mut buffer).await?;
-    let request = request::HttpRequest::try_from(&buffer[..bytes_read])?;
+    let Ok(request) = request::HttpRequest::try_from(&buffer[..bytes_read]) else {
+        anyhow::bail!("Failed to parse request");
+    };
     println!("--> Received request:\n{}", request.to_string());
 
     // Send the response

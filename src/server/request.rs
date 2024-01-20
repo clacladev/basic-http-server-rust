@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub enum Method {
     GET,
+    POST,
 }
 
 impl TryFrom<&str> for Method {
@@ -9,6 +10,7 @@ impl TryFrom<&str> for Method {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value {
             "GET" => Ok(Method::GET),
+            "POST" => Ok(Method::POST),
             _ => anyhow::bail!("Invalid method: {}", value),
         }
     }

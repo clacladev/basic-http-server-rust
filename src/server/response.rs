@@ -3,6 +3,7 @@ use std::{fmt::Display, vec};
 #[derive(Debug, Clone)]
 pub enum StatusCode {
     Ok = 200,
+    Created = 201,
     NotFound = 404,
 }
 
@@ -10,6 +11,7 @@ impl Display for StatusCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let status_code = match self {
             StatusCode::Ok => "200 OK",
+            StatusCode::Created => "201 Created",
             StatusCode::NotFound => "404 Not Found",
         };
         write!(f, "{}", status_code)
@@ -31,17 +33,11 @@ pub struct HttpResponse {
 
 impl HttpResponse {
     pub fn ok() -> Self {
-        HttpResponse {
-            status_code: StatusCode::Ok,
-            body: Body::None,
-        }
+        HttpResponse::new(StatusCode::Ok, Body::None)
     }
 
     pub fn not_found() -> Self {
-        HttpResponse {
-            status_code: StatusCode::NotFound,
-            body: Body::None,
-        }
+        HttpResponse::new(StatusCode::NotFound, Body::None)
     }
 
     pub fn new(status_code: StatusCode, body: Body) -> Self {

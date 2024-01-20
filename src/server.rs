@@ -9,6 +9,7 @@ use crate::{cli::CliOption, routes::handle_request};
 
 const DEFAULT_IP: &str = "127.0.0.1";
 const DEFAULT_PORT: u32 = 4221;
+const MB: usize = 1024 * 1024;
 
 pub mod request;
 pub mod response;
@@ -28,8 +29,8 @@ pub async fn start_server(options: Vec<CliOption>) -> anyhow::Result<()> {
 
 async fn handle_stream(mut stream: TcpStream, options: Arc<Vec<CliOption>>) -> anyhow::Result<()> {
     // Read the request
-    let mut buffer = [0; 1024];
-    let bytes_read = stream.read(&mut buffer).await?;
+    let mut buffer = Vec::with_capacity(1 * MB); // 1 MB
+    let bytes_read = stream.read_buf(&mut buffer).await?;
     let Ok(request) = request::HttpRequest::try_from(&buffer[..bytes_read]) else {
         anyhow::bail!("Failed to parse request");
     };

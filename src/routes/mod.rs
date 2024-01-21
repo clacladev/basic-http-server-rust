@@ -121,9 +121,11 @@ fn post_files(request: &HttpRequest, options: Arc<Vec<CliOption>>) -> anyhow::Re
     let Some(body) = &request.body else {
         anyhow::bail!("Failed to find body in request");
     };
-    let Ok(()) = fs::write(file_path, body) else {
-        anyhow::bail!("Failed to write file");
-    };
-
-    Ok(HttpResponse::new(StatusCode::Created, Body::None))
+    match fs::write(file_path, body) {
+        Ok(()) => Ok(HttpResponse::new(StatusCode::Created, Body::None)),
+        Err(e) => {
+            println!("Failed to write file: {}", e);
+            anyhow::bail!("Failed to write file")
+        }
+    }
 }

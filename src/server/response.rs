@@ -5,6 +5,7 @@ pub enum StatusCode {
     Ok = 200,
     Created = 201,
     NotFound = 404,
+    InternalServerError = 500,
 }
 
 impl Display for StatusCode {
@@ -13,6 +14,7 @@ impl Display for StatusCode {
             StatusCode::Ok => "200 OK",
             StatusCode::Created => "201 Created",
             StatusCode::NotFound => "404 Not Found",
+            StatusCode::InternalServerError => "500 Internal Server Error",
         };
         write!(f, "{}", status_code)
     }
